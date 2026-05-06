@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+import platform
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -20,12 +22,22 @@ origins = settings.cors_origins or [
     "https://sanskarnamdeo801.github.io",
 ]
 
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    logger.info("Python runtime: %s", platform.python_version())
+    logger.info("DATABASE_URL: %s", settings.safe_database_url)
+    logger.info("Redis configured: %s", bool(settings.redis_url))
+    yield
+
+
 app = FastAPI(
     title=f"{settings.app_name} API",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    lifespan=lifespan,
 )
 app.add_middleware(
     CORSMiddleware,

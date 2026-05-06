@@ -18,5 +18,4 @@ class Like(Base):
     post_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("posts.id"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
-    post = relationship("Post", back_populates="likes")
-
+    post: Mapped["Post"] = relationship("Post", back_populates="likes")

@@ -3,6 +3,7 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import UTC, datetime
+from typing import Optional
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -33,10 +34,9 @@ class Report(Base):
     reason: Mapped[str] = mapped_column(String(120))
     details: Mapped[str] = mapped_column(String(500), default="")
     status: Mapped[ReportStatus] = mapped_column(Enum(ReportStatus), default=ReportStatus.open, index=True)
-    assigned_admin_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    assigned_admin_id: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("users.id"), nullable=True)
     resolution_note: Mapped[str] = mapped_column(String(500), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
-    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    reporter = relationship("User", back_populates="reports", foreign_keys=[reporter_id])
-
+    reporter: Mapped["User"] = relationship("User", back_populates="reports", foreign_keys="Report.reporter_id")

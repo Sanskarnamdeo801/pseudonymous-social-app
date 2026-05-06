@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+from typing import Optional
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -21,9 +22,8 @@ class Post(Base):
     comment_count: Mapped[int] = mapped_column(Integer, default=0)
     engagement_score: Mapped[float] = mapped_column(Float, default=0.0, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), index=True)
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    author = relationship("User", back_populates="posts")
-    comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
-    likes = relationship("Like", back_populates="post", cascade="all, delete-orphan")
-
+    author: Mapped["User"] = relationship("User", back_populates="posts")
+    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
+    likes: Mapped[list["Like"]] = relationship("Like", back_populates="post", cascade="all, delete-orphan")

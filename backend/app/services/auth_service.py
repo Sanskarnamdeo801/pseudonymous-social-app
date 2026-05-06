@@ -65,8 +65,10 @@ class AuthService:
             expires_at=expires_at,
         )
         db.add(refresh_record)
-        redis_client = get_redis_client()
         try:
+            redis_client = get_redis_client()
+            if redis_client is None:
+                raise RuntimeError("Redis is not configured")
             ttl = int((expires_at - datetime.now(UTC)).total_seconds())
             redis_client.setex(f"session:{jti_hash}", ttl, str(user.id))
         except Exception:
@@ -97,10 +99,12 @@ class AuthService:
         if token_record and not token_record.revoked_at:
             token_record.revoked_at = datetime.now(UTC)
         try:
-            get_redis_client().delete(f"session:{jti_hash}")
+            redis_client = get_redis_client()
+            if redis_client is None:
+                raise RuntimeError("Redis is not configured")
+            redis_client.delete(f"session:{jti_hash}")
         except Exception:
             pass
 
 
 auth_service = AuthService()
-

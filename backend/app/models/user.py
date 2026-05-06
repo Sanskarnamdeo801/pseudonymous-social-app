@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+from typing import Optional
 
 from sqlalchemy import Boolean, DateTime, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -25,15 +26,26 @@ class User(Base):
     email_notifications: Mapped[bool] = mapped_column(Boolean, default=True)
     filtered_keywords: Mapped[list[str]] = mapped_column(JSON, default=list)
     ip_hash: Mapped[str] = mapped_column(String(128))
-    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
     )
 
-    posts = relationship("Post", back_populates="author", cascade="all, delete-orphan")
-    comments = relationship("Comment", back_populates="author", cascade="all, delete-orphan")
-    notifications = relationship("Notification", back_populates="user", foreign_keys="Notification.user_id")
-    sent_notifications = relationship("Notification", back_populates="actor", foreign_keys="Notification.actor_id")
-    reports = relationship("Report", back_populates="reporter", foreign_keys="Report.reporter_id")
-
+    posts: Mapped[list["Post"]] = relationship("Post", back_populates="author", cascade="all, delete-orphan")
+    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="author", cascade="all, delete-orphan")
+    notifications: Mapped[list["Notification"]] = relationship(
+        "Notification",
+        back_populates="user",
+        foreign_keys="Notification.user_id",
+    )
+    sent_notifications: Mapped[list["Notification"]] = relationship(
+        "Notification",
+        back_populates="actor",
+        foreign_keys="Notification.actor_id",
+    )
+    reports: Mapped[list["Report"]] = relationship(
+        "Report",
+        back_populates="reporter",
+        foreign_keys="Report.reporter_id",
+    )

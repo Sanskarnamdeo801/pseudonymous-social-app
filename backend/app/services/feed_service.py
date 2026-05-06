@@ -43,7 +43,10 @@ class FeedService:
     def get_feed(self, db: Session, user_id, mode: str) -> list[Post] | list[dict]:
         cache_key = f"feed:{mode}:{user_id}"
         try:
-            cached = get_redis_client().get(cache_key)
+            redis_client = get_redis_client()
+            if redis_client is None:
+                raise RuntimeError("Redis is not configured")
+            cached = redis_client.get(cache_key)
             if cached:
                 return json.loads(cached)
         except Exception:
@@ -52,7 +55,10 @@ class FeedService:
         order_clause = Post.created_at.desc() if mode == "chronological" else Post.engagement_score.desc()
         posts = list(db.scalars(self._base_query().order_by(order_clause).limit(50)).unique().all())
         try:
-            get_redis_client().setex(cache_key, 60, self._serialize_posts(posts))
+            redis_client = get_redis_client()
+            if redis_client is None:
+                raise RuntimeError("Redis is not configured")
+            redis_client.setex(cache_key, 60, self._serialize_posts(posts))
         except Exception:
             pass
         return posts
@@ -69,6 +75,8 @@ class FeedService:
     def invalidate_user_feeds(user_id) -> None:
         try:
             redis_client = get_redis_client()
+            if redis_client is None:
+                raise RuntimeError("Redis is not configured")
             for mode in ("chronological", "trending"):
                 redis_client.delete(f"feed:{mode}:{user_id}")
         except Exception:

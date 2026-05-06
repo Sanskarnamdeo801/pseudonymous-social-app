@@ -28,6 +28,8 @@ def rate_limit(limit: int, window_seconds: int):
         key = f"rl:{request.url.path}:{client_key}"
         try:
             redis_client = get_redis_client()
+            if redis_client is None:
+                raise RuntimeError("Redis is not configured")
             current = redis_client.incr(key)
             if current == 1:
                 redis_client.expire(key, window_seconds)
