@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
 
 import { useAuth } from "../hooks/useAuth";
-import { JWT_AUTH_DISABLED } from "../lib/guestMode";
 
 const navItems = [
   { to: "/feed", label: "Home", icon: House },
@@ -14,7 +13,7 @@ const navItems = [
 
 export function MobileBottomNav({ hidden = false }: { hidden?: boolean }) {
   const { user } = useAuth();
-  const profilePath = JWT_AUTH_DISABLED ? "/user/guest" : user ? `/user/${user.handle}` : "/login";
+  const profilePath = user ? `/user/${user.handle}` : "/login";
 
   return (
     <nav

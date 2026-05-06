@@ -1,28 +1,33 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { DEMO_PROFILE, JWT_AUTH_DISABLED } from "../lib/guestMode";
 import { userService } from "../services/users";
 import type { UserProfile } from "../types";
 
 export function UserProfilePage() {
   const { handle = "" } = useParams();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (JWT_AUTH_DISABLED && handle === DEMO_PROFILE.handle) {
-        setProfile(DEMO_PROFILE);
-        return;
+      setLoading(true);
+      try {
+        const data = await userService.getProfile(handle);
+        setProfile(data);
+      } finally {
+        setLoading(false);
       }
-      const data = await userService.getProfile(handle);
-      setProfile(data);
     };
     void loadProfile();
   }, [handle]);
 
-  if (!profile) {
+  if (loading) {
     return <div className="text-smoke-300">Loading profile...</div>;
+  }
+
+  if (!profile) {
+    return <div className="text-smoke-300">Profile not found.</div>;
   }
 
   return (

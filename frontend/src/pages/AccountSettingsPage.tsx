@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 
-import { DEMO_PROFILE, JWT_AUTH_DISABLED } from "../lib/guestMode";
+import { notifySuccess } from "../lib/notifications";
 import { userService } from "../services/users";
 import type { UserProfile } from "../types";
 
@@ -8,32 +8,39 @@ export function AccountSettingsPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [handle, setHandle] = useState("");
   const [bio, setBio] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      if (JWT_AUTH_DISABLED) {
-        setProfile(DEMO_PROFILE);
-        setHandle(DEMO_PROFILE.handle);
-        setBio(DEMO_PROFILE.bio);
-        return;
+      setLoading(true);
+      try {
+        const data = await userService.getAccountSettings();
+        setProfile(data);
+        setHandle(data.handle);
+        setBio(data.bio);
+      } finally {
+        setLoading(false);
       }
-      const data = await userService.getAccountSettings();
-      setProfile(data);
-      setHandle(data.handle);
-      setBio(data.bio);
     };
     void load();
   }, []);
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
-    if (JWT_AUTH_DISABLED) {
-      setProfile((current) => (current ? { ...current, handle, bio } : current));
-      return;
+    setSaving(true);
+    try {
+      const updated = await userService.updateAccount({ handle, bio });
+      setProfile(updated);
+      notifySuccess("Account settings updated.");
+    } finally {
+      setSaving(false);
     }
-    const updated = await userService.updateAccount({ handle, bio });
-    setProfile(updated);
   };
+
+  if (loading) {
+    return <section className="surface-panel max-w-4xl text-smoke-300">Loading account settings...</section>;
+  }
 
   return (
     <section className="surface-panel max-w-4xl">
@@ -47,8 +54,8 @@ export function AccountSettingsPage() {
           onChange={(event) => setBio(event.target.value)}
           className="field-shell"
         />
-        <button type="submit" className="primary-button">
-          Save changes
+        <button type="submit" disabled={saving} className="primary-button">
+          {saving ? "Saving..." : "Save changes"}
         </button>
       </form>
       {profile && <p className="mt-5 text-sm text-smoke-400">Last loaded alias: @{profile.handle}</p>}

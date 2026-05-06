@@ -1,29 +1,26 @@
 import { useEffect, useState } from "react";
 
-import { DEMO_NOTIFICATIONS, JWT_AUTH_DISABLED } from "../lib/guestMode";
 import { notificationService } from "../services/notifications";
 import type { NotificationItem } from "../types";
 
 export function NotificationsPage() {
   const [items, setItems] = useState<NotificationItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      if (JWT_AUTH_DISABLED) {
-        setItems(DEMO_NOTIFICATIONS);
-        return;
+      setLoading(true);
+      try {
+        const data = await notificationService.list();
+        setItems(data);
+      } finally {
+        setLoading(false);
       }
-      const data = await notificationService.list();
-      setItems(data);
     };
     void load();
   }, []);
 
   const markRead = async () => {
-    if (JWT_AUTH_DISABLED) {
-      setItems((current) => current.map((item) => ({ ...item, is_read: true })));
-      return;
-    }
     await notificationService.markRead();
     setItems((current) => current.map((item) => ({ ...item, is_read: true })));
   };
@@ -40,7 +37,9 @@ export function NotificationsPage() {
         </button>
       </div>
       <div>
-        {items.map((item) => (
+        {loading ? (
+          <div className="px-6 py-8 text-center text-smoke-300">Loading notifications...</div>
+        ) : items.map((item) => (
           <div
             key={item.id}
             className={`border-b border-white/10 px-6 py-5 ${item.is_read ? "bg-transparent" : "bg-ember-400/10"}`}

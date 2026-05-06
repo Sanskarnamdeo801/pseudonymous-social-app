@@ -8,6 +8,8 @@ from app.db.session import get_db
 from app.models.user import User
 from app.schemas.auth import AuthResponse, AuthUser, LoginRequest, RefreshRequest, SignUpRequest
 from app.services.auth_service import auth_service
+from app.services.crypto_service import crypto_service
+from app.services.email_service import email_service
 
 router = APIRouter()
 settings = get_settings()
@@ -19,6 +21,11 @@ def signup(payload: SignUpRequest, request: Request, db: Session = Depends(get_d
     tokens = auth_service.issue_tokens(db, user, request)
     db.commit()
     db.refresh(user)
+    if user.email_notifications:
+        email_service.send_welcome_email_safely(
+            recipient=crypto_service.decrypt_email(user.email_encrypted),
+            handle=user.handle,
+        )
     return AuthResponse(user=user, tokens=tokens)
 
 

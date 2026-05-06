@@ -1,39 +1,48 @@
 import { useEffect, useState, type FormEvent } from "react";
 
-import { DEMO_PROFILE, JWT_AUTH_DISABLED } from "../lib/guestMode";
+import { notifySuccess } from "../lib/notifications";
 import { userService } from "../services/users";
 
 export function SafetySettingsPage() {
   const [blurSensitiveContent, setBlurSensitiveContent] = useState(true);
   const [filteredKeywords, setFilteredKeywords] = useState("doxx,harassment");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      if (JWT_AUTH_DISABLED) {
-        setBlurSensitiveContent(DEMO_PROFILE.blur_sensitive_content);
-        setFilteredKeywords(DEMO_PROFILE.filtered_keywords.join(","));
-        return;
+      setLoading(true);
+      try {
+        const profile = await userService.getAccountSettings();
+        setBlurSensitiveContent(profile.blur_sensitive_content);
+        setFilteredKeywords(profile.filtered_keywords.join(","));
+      } finally {
+        setLoading(false);
       }
-      const profile = await userService.getAccountSettings();
-      setBlurSensitiveContent(profile.blur_sensitive_content);
-      setFilteredKeywords(profile.filtered_keywords.join(","));
     };
     void load();
   }, []);
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
-    if (JWT_AUTH_DISABLED) {
-      return;
+    setSaving(true);
+    try {
+      await userService.updateSafety({
+        blur_sensitive_content: blurSensitiveContent,
+        filtered_keywords: filteredKeywords
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+      });
+      notifySuccess("Safety settings updated.");
+    } finally {
+      setSaving(false);
     }
-    await userService.updateSafety({
-      blur_sensitive_content: blurSensitiveContent,
-      filtered_keywords: filteredKeywords
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean),
-    });
   };
+
+  if (loading) {
+    return <section className="surface-panel max-w-4xl text-smoke-300">Loading safety settings...</section>;
+  }
 
   return (
     <section className="surface-panel max-w-4xl">
@@ -57,8 +66,8 @@ export function SafetySettingsPage() {
             className="field-shell"
           />
         </label>
-        <button type="submit" className="primary-button">
-          Save safety controls
+        <button type="submit" disabled={saving} className="primary-button">
+          {saving ? "Saving..." : "Save safety controls"}
         </button>
       </form>
     </section>

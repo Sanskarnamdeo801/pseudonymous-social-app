@@ -28,6 +28,7 @@ async def lifespan(_: FastAPI):
     logger.info("Python runtime: %s", platform.python_version())
     logger.info("DATABASE_URL: %s", settings.safe_database_url)
     logger.info("Redis configured: %s", bool(settings.redis_url))
+    logger.info("SMTP configured: %s", settings.smtp_configured)
     yield
 
 

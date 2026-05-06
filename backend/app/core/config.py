@@ -64,6 +64,12 @@ class Settings(BaseSettings):
     database_url: str = Field(default="")
     redis_url: str | None = None
     backend_cors_origins: str = "http://localhost:5173,https://sanskarnamdeo801.github.io"
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str | None = None
+    smtp_use_tls: bool = True
     email_encryption_key: str = "cZx5mvfuk6hYk6H7AnqH-5VQ0K6T4O3v1s6J8Zq9QxI="
     ip_hash_pepper: str = "replace-with-dev-pepper"
     auto_flag_keywords: str = "violence,terrorism,doxx,credit card,ssn"
@@ -99,6 +105,11 @@ class Settings(BaseSettings):
     @property
     def safe_database_url(self) -> str:
         return _redact_database_url(self.normalized_database_url)
+
+    @computed_field
+    @property
+    def smtp_configured(self) -> bool:
+        return bool(self.smtp_host and self.smtp_user and self.smtp_password and self.smtp_from)
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":

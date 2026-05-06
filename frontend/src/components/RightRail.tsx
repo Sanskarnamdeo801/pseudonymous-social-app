@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "../hooks/useAuth";
-import { JWT_AUTH_DISABLED } from "../lib/guestMode";
 import { fadeUpItem, staggerGrid } from "../lib/motion";
 
 const companionNotes = [
@@ -15,7 +14,7 @@ const suggestedTracks = ["privacy tech", "anonymous culture", "signal design", "
 
 export function RightRail() {
   const { user } = useAuth();
-  const profilePath = JWT_AUTH_DISABLED ? "/user/guest" : user ? `/user/${user.handle}` : "/login";
+  const profilePath = user ? `/user/${user.handle}` : "/login";
 
   return (
     <aside className="sticky top-6 hidden h-fit space-y-4 xl:block">
@@ -29,7 +28,7 @@ export function RightRail() {
         </motion.p>
         <motion.div variants={fadeUpItem} className="mt-4">
           <Link to={profilePath} className="secondary-button animated-button inline-flex">
-            {JWT_AUTH_DISABLED ? "Visit demo profile" : "Visit your profile"}
+            Visit your profile
           </Link>
         </motion.div>
       </motion.div>

@@ -3,7 +3,6 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../hooks/useAuth";
-import { JWT_AUTH_DISABLED } from "../lib/guestMode";
 import { fadeUpItem, staggerGrid } from "../lib/motion";
 
 export function LoginPage() {
@@ -19,10 +18,6 @@ export function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      if (JWT_AUTH_DISABLED) {
-        navigate("/feed");
-        return;
-      }
       await login(handle, password);
       navigate("/feed");
     } catch {
@@ -36,16 +31,12 @@ export function LoginPage() {
     <motion.div className="surface-panel glow-border" variants={staggerGrid} initial="initial" animate="animate">
       <motion.p className="eyebrow" variants={fadeUpItem}>Your Thought Companion</motion.p>
       <motion.h2 className="mt-4 font-display text-4xl font-extrabold text-mist-50" variants={fadeUpItem}>Log in</motion.h2>
-      <motion.p className="mt-3 text-sm leading-7 text-smoke-300" variants={fadeUpItem}>
-        {JWT_AUTH_DISABLED
-          ? "JWT auth is disabled in this build. Use this screen as a direct entry into the demo."
-          : "Access your account and pick up the conversation where you left it."}
-      </motion.p>
+      <motion.p className="mt-3 text-sm leading-7 text-smoke-300" variants={fadeUpItem}>Access your account and pick up the conversation where you left it.</motion.p>
       <form onSubmit={(event) => void submit(event)} className="mt-8 space-y-5">
         <label className="block space-y-2">
           <span className="text-sm font-medium text-smoke-300">Handle</span>
           <input
-            required={!JWT_AUTH_DISABLED}
+            required
             value={handle}
             onChange={(event) => setHandle(event.target.value)}
             placeholder="@midnight_echo"
@@ -55,7 +46,7 @@ export function LoginPage() {
         <label className="block space-y-2">
           <span className="text-sm font-medium text-smoke-300">Password</span>
           <input
-            required={!JWT_AUTH_DISABLED}
+            required
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -65,7 +56,7 @@ export function LoginPage() {
         </label>
         {error && <p className="text-sm text-red-500">{error}</p>}
         <button type="submit" disabled={loading} className="primary-button animated-button w-full">
-          {loading ? "Opening demo..." : JWT_AUTH_DISABLED ? "Enter demo" : "Sign in"}
+          {loading ? "Signing in..." : "Sign in"}
         </button>
       </form>
       <p className="mt-6 text-sm text-smoke-400">

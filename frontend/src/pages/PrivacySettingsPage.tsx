@@ -1,40 +1,48 @@
 import { useEffect, useState, type FormEvent } from "react";
 
-import { DEMO_PROFILE, JWT_AUTH_DISABLED } from "../lib/guestMode";
+import { notifySuccess } from "../lib/notifications";
 import { userService } from "../services/users";
 
 export function PrivacySettingsPage() {
   const [isSearchable, setIsSearchable] = useState(true);
   const [showActivityStatus, setShowActivityStatus] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      if (JWT_AUTH_DISABLED) {
-        setIsSearchable(DEMO_PROFILE.is_searchable);
-        setShowActivityStatus(DEMO_PROFILE.show_activity_status);
-        setEmailNotifications(DEMO_PROFILE.email_notifications);
-        return;
+      setLoading(true);
+      try {
+        const profile = await userService.getAccountSettings();
+        setIsSearchable(profile.is_searchable);
+        setShowActivityStatus(profile.show_activity_status);
+        setEmailNotifications(profile.email_notifications);
+      } finally {
+        setLoading(false);
       }
-      const profile = await userService.getAccountSettings();
-      setIsSearchable(profile.is_searchable);
-      setShowActivityStatus(profile.show_activity_status);
-      setEmailNotifications(profile.email_notifications);
     };
     void load();
   }, []);
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
-    if (JWT_AUTH_DISABLED) {
-      return;
+    setSaving(true);
+    try {
+      await userService.updatePrivacy({
+        is_searchable: isSearchable,
+        show_activity_status: showActivityStatus,
+        email_notifications: emailNotifications,
+      });
+      notifySuccess("Privacy settings updated.");
+    } finally {
+      setSaving(false);
     }
-    await userService.updatePrivacy({
-      is_searchable: isSearchable,
-      show_activity_status: showActivityStatus,
-      email_notifications: emailNotifications,
-    });
   };
+
+  if (loading) {
+    return <section className="surface-panel max-w-4xl text-smoke-300">Loading privacy settings...</section>;
+  }
 
   return (
     <section className="surface-panel max-w-4xl">
@@ -63,8 +71,8 @@ export function PrivacySettingsPage() {
             <input type="checkbox" checked={item.checked} onChange={(event) => item.onChange(event.target.checked)} />
           </label>
         ))}
-        <button type="submit" className="primary-button">
-          Save privacy preferences
+        <button type="submit" disabled={saving} className="primary-button">
+          {saving ? "Saving..." : "Save privacy preferences"}
         </button>
       </form>
     </section>

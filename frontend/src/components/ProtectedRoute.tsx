@@ -2,13 +2,9 @@ import { Navigate, Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
 
 import { useAuth } from "../hooks/useAuth";
-import { JWT_AUTH_DISABLED } from "../lib/guestMode";
 
 export function ProtectedRoute() {
   const { user, loading } = useAuth();
-  if (JWT_AUTH_DISABLED) {
-    return <Outlet />;
-  }
   if (loading) {
     return (
       <motion.div
@@ -25,9 +21,6 @@ export function ProtectedRoute() {
 
 export function AdminRoute() {
   const { user, loading } = useAuth();
-  if (JWT_AUTH_DISABLED) {
-    return <Outlet />;
-  }
   if (loading) {
     return (
       <motion.div

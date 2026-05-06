@@ -11,11 +11,10 @@ export const authService = {
     return data;
   },
   getCurrentUser: async () => {
-    const { data } = await api.get<AuthUser>("/auth/me");
+    const { data } = await api.get<AuthUser>("/auth/me", { _skipGlobalErrorToast: true } as never);
     return data;
   },
   logout: async (refreshToken: string) => {
-    await api.post("/auth/logout", { refresh_token: refreshToken });
+    await api.post("/auth/logout", { refresh_token: refreshToken }, { _skipGlobalErrorToast: true } as never);
   },
 };
-

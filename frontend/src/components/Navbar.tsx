@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "../hooks/useAuth";
-import { JWT_AUTH_DISABLED } from "../lib/guestMode";
 import { useTheme } from "../hooks/useTheme";
 import { fadeUpItem, staggerGrid } from "../lib/motion";
 
@@ -15,7 +14,7 @@ interface NavbarProps {
 export function Navbar({ onMenuToggle, hidden = false }: NavbarProps) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const profilePath = JWT_AUTH_DISABLED ? "/user/guest" : user ? `/user/${user.handle}` : "/login";
+  const profilePath = user ? `/user/${user.handle}` : "/login";
 
   return (
     <header
@@ -73,10 +72,9 @@ export function Navbar({ onMenuToggle, hidden = false }: NavbarProps) {
             to={profilePath}
             className="animated-button rounded-full border border-white/12 bg-white/5 px-4 py-2 text-sm font-medium text-mist-50 transition hover:border-ember-400/40"
           >
-            {JWT_AUTH_DISABLED ? "Guest Mode" : `@${user?.handle}`}
+            @{user?.handle}
           </Link>
           </motion.div>
-          {!JWT_AUTH_DISABLED && (
           <motion.div variants={fadeUpItem}>
           <button
             type="button"
@@ -87,7 +85,6 @@ export function Navbar({ onMenuToggle, hidden = false }: NavbarProps) {
             Exit
           </button>
           </motion.div>
-          )}
         </div>
       </motion.div>
     </header>
