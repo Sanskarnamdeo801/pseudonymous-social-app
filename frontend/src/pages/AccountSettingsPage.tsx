@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 
+import { DEMO_PROFILE, JWT_AUTH_DISABLED } from "../lib/guestMode";
 import { userService } from "../services/users";
 import type { UserProfile } from "../types";
 
@@ -10,6 +11,12 @@ export function AccountSettingsPage() {
 
   useEffect(() => {
     const load = async () => {
+      if (JWT_AUTH_DISABLED) {
+        setProfile(DEMO_PROFILE);
+        setHandle(DEMO_PROFILE.handle);
+        setBio(DEMO_PROFILE.bio);
+        return;
+      }
       const data = await userService.getAccountSettings();
       setProfile(data);
       setHandle(data.handle);
@@ -20,6 +27,10 @@ export function AccountSettingsPage() {
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
+    if (JWT_AUTH_DISABLED) {
+      setProfile((current) => (current ? { ...current, handle, bio } : current));
+      return;
+    }
     const updated = await userService.updateAccount({ handle, bio });
     setProfile(updated);
   };

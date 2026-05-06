@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 
 import { useAuth } from "../hooks/useAuth";
+import { JWT_AUTH_DISABLED } from "../lib/guestMode";
 const mobileLinks = [
   { to: "/settings/account", label: "Settings", icon: Settings },
   { to: "/privacy-policy", label: "Privacy", icon: FileText },
 ];
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const [isDesktop, setIsDesktop] = useState(() => (typeof window !== "undefined" ? window.innerWidth >= 1024 : false));
 
   useEffect(() => {
@@ -69,13 +70,15 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
         </div>
         <p className="mt-3 text-sm leading-7 text-smoke-300">Secure, encrypted, and private communication for your digital identity.</p>
       </div>
-      <button
-        type="button"
-        onClick={() => void logout()}
-        className="secondary-button animated-button mt-auto hidden w-full items-center justify-center rounded-2xl lg:inline-flex"
-      >
-        Sign out
-      </button>
+      {!JWT_AUTH_DISABLED && (
+        <button
+          type="button"
+          onClick={() => void logout()}
+          className="secondary-button animated-button mt-auto hidden w-full items-center justify-center rounded-2xl lg:inline-flex"
+        >
+          Sign out
+        </button>
+      )}
       </div>
     </motion.aside>
   );

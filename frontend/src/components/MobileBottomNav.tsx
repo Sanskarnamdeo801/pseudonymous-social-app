@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
 
 import { useAuth } from "../hooks/useAuth";
+import { JWT_AUTH_DISABLED } from "../lib/guestMode";
 
 const navItems = [
   { to: "/feed", label: "Home", icon: House },
@@ -13,6 +14,7 @@ const navItems = [
 
 export function MobileBottomNav({ hidden = false }: { hidden?: boolean }) {
   const { user } = useAuth();
+  const profilePath = JWT_AUTH_DISABLED ? "/user/guest" : user ? `/user/${user.handle}` : "/login";
 
   return (
     <nav
@@ -60,7 +62,7 @@ export function MobileBottomNav({ hidden = false }: { hidden?: boolean }) {
           </NavLink>
         ))}
 
-        <NavLink to={`/user/${user?.handle ?? ""}`} className="group relative flex flex-1 justify-center">
+        <NavLink to={profilePath} className="group relative flex flex-1 justify-center">
           {({ isActive }) => (
             <motion.div whileTap={{ scale: 0.94 }} whileHover={{ scale: 1.05 }} className="relative flex w-full flex-col items-center justify-center gap-1">
               {isActive && (

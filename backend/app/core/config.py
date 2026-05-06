@@ -3,12 +3,17 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 from typing import List
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
+from dotenv import load_dotenv
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 PROJECT_ROOT = BACKEND_ROOT.parent
+
+load_dotenv(BACKEND_ROOT / ".env")
+load_dotenv(PROJECT_ROOT / ".env")
 
 
 def _parse_origin_list(raw_value: str) -> List[str]:
@@ -25,17 +30,29 @@ def _parse_origin_list(raw_value: str) -> List[str]:
     return [origin.strip() for origin in value.split(",") if origin.strip()]
 
 
+def _ensure_postgres_sslmode(database_url: str) -> str:
+    if not database_url or not database_url.startswith("postgresql"):
+        return database_url
+
+    parts = urlsplit(database_url)
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    query.setdefault("sslmode", "require")
+    return urlunsplit(parts._replace(query=urlencode(query)))
+
+
 class Settings(BaseSettings):
     app_name: str = "VeilSpeak"
-    app_env: str = "development"
-    app_debug: bool = True
+    app_env: str = "production"
+    app_debug: bool = False
     secret_key: str = "change-me-dev-secret"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 20
     refresh_token_expire_days: int = 14
-    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/veilspeak"
+    database_url: str = Field(
+        default="postgresql+psycopg://postgres:postgres@localhost:5432/veilspeak?sslmode=require"
+    )
     redis_url: str = "redis://localhost:6379/0"
-    backend_cors_origins: str = "http://localhost:5173"
+    backend_cors_origins: str = "http://localhost:5173,https://sanskarnamdeo801.github.io"
     email_encryption_key: str = "cZx5mvfuk6hYk6H7AnqH-5VQ0K6T4O3v1s6J8Zq9QxI="
     ip_hash_pepper: str = "replace-with-dev-pepper"
     auto_flag_keywords: str = "violence,terrorism,doxx,credit card,ssn"
@@ -60,6 +77,11 @@ class Settings(BaseSettings):
     @property
     def auto_flag_terms(self) -> List[str]:
         return [term.strip().lower() for term in self.auto_flag_keywords.split(",") if term.strip()]
+
+    @computed_field
+    @property
+    def normalized_database_url(self) -> str:
+        return _ensure_postgres_sslmode(self.database_url)
 
 
 @lru_cache

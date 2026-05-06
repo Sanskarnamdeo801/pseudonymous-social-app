@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 
+import { DEMO_PROFILE, JWT_AUTH_DISABLED } from "../lib/guestMode";
 import { userService } from "../services/users";
 
 export function PrivacySettingsPage() {
@@ -9,6 +10,12 @@ export function PrivacySettingsPage() {
 
   useEffect(() => {
     const load = async () => {
+      if (JWT_AUTH_DISABLED) {
+        setIsSearchable(DEMO_PROFILE.is_searchable);
+        setShowActivityStatus(DEMO_PROFILE.show_activity_status);
+        setEmailNotifications(DEMO_PROFILE.email_notifications);
+        return;
+      }
       const profile = await userService.getAccountSettings();
       setIsSearchable(profile.is_searchable);
       setShowActivityStatus(profile.show_activity_status);
@@ -19,6 +26,9 @@ export function PrivacySettingsPage() {
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
+    if (JWT_AUTH_DISABLED) {
+      return;
+    }
     await userService.updatePrivacy({
       is_searchable: isSearchable,
       show_activity_status: showActivityStatus,

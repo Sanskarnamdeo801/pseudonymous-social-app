@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 
+import { DEMO_PROFILE, JWT_AUTH_DISABLED } from "../lib/guestMode";
 import { userService } from "../services/users";
 
 export function SafetySettingsPage() {
@@ -8,6 +9,11 @@ export function SafetySettingsPage() {
 
   useEffect(() => {
     const load = async () => {
+      if (JWT_AUTH_DISABLED) {
+        setBlurSensitiveContent(DEMO_PROFILE.blur_sensitive_content);
+        setFilteredKeywords(DEMO_PROFILE.filtered_keywords.join(","));
+        return;
+      }
       const profile = await userService.getAccountSettings();
       setBlurSensitiveContent(profile.blur_sensitive_content);
       setFilteredKeywords(profile.filtered_keywords.join(","));
@@ -17,6 +23,9 @@ export function SafetySettingsPage() {
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
+    if (JWT_AUTH_DISABLED) {
+      return;
+    }
     await userService.updateSafety({
       blur_sensitive_content: blurSensitiveContent,
       filtered_keywords: filteredKeywords

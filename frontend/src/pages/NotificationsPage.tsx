@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { DEMO_NOTIFICATIONS, JWT_AUTH_DISABLED } from "../lib/guestMode";
 import { notificationService } from "../services/notifications";
 import type { NotificationItem } from "../types";
 
@@ -8,6 +9,10 @@ export function NotificationsPage() {
 
   useEffect(() => {
     const load = async () => {
+      if (JWT_AUTH_DISABLED) {
+        setItems(DEMO_NOTIFICATIONS);
+        return;
+      }
       const data = await notificationService.list();
       setItems(data);
     };
@@ -15,6 +20,10 @@ export function NotificationsPage() {
   }, []);
 
   const markRead = async () => {
+    if (JWT_AUTH_DISABLED) {
+      setItems((current) => current.map((item) => ({ ...item, is_read: true })));
+      return;
+    }
     await notificationService.markRead();
     setItems((current) => current.map((item) => ({ ...item, is_read: true })));
   };

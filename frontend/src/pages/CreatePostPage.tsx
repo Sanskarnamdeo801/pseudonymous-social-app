@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { JWT_AUTH_DISABLED } from "../lib/guestMode";
 import { postService } from "../services/posts";
 
 export function CreatePostPage() {
@@ -8,9 +9,15 @@ export function CreatePostPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if (JWT_AUTH_DISABLED) {
+      setMessage("Guest mode is active. Publishing is disabled in the GitHub Pages demo build.");
+      return;
+    }
+
     setLoading(true);
     try {
       const post = await postService.createPost(title, content);
@@ -24,6 +31,7 @@ export function CreatePostPage() {
     <section className="px-6 py-6">
       <p className="eyebrow">Publish a post</p>
       <h1 className="mt-3 font-display text-3xl font-extrabold text-mist-50">Compose</h1>
+      {message && <p className="mt-4 text-sm text-ember-400">{message}</p>}
       <form onSubmit={(event) => void submit(event)} className="mt-6 space-y-5 rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
         <input
           required
@@ -41,7 +49,7 @@ export function CreatePostPage() {
           className="field-shell text-sm leading-8"
         />
         <button type="submit" disabled={loading} className="primary-button animated-button px-6">
-          {loading ? "Publishing..." : "Publish post"}
+          {loading ? "Publishing..." : JWT_AUTH_DISABLED ? "Demo-only composer" : "Publish post"}
         </button>
       </form>
     </section>

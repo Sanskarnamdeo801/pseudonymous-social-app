@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
+import { DEMO_PROFILE, JWT_AUTH_DISABLED } from "../lib/guestMode";
 import { userService } from "../services/users";
 import type { UserProfile } from "../types";
 
@@ -10,6 +11,10 @@ export function UserProfilePage() {
 
   useEffect(() => {
     const loadProfile = async () => {
+      if (JWT_AUTH_DISABLED && handle === DEMO_PROFILE.handle) {
+        setProfile(DEMO_PROFILE);
+        return;
+      }
       const data = await userService.getProfile(handle);
       setProfile(data);
     };

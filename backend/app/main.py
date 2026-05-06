@@ -15,6 +15,10 @@ from app.middleware.security_headers import SecurityHeadersMiddleware
 settings = get_settings()
 configure_logging(settings.app_debug)
 logger = logging.getLogger(__name__)
+origins = settings.cors_origins or [
+    "http://localhost:5173",
+    "https://sanskarnamdeo801.github.io",
+]
 
 app = FastAPI(
     title=f"{settings.app_name} API",
@@ -25,7 +29,7 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,7 +54,11 @@ async def generic_exception_handler(_: Request, exc: Exception) -> JSONResponse:
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
+@app.get("/")
+def root() -> dict:
+    return {"status": "ok"}
+
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok", "service": settings.app_name}
-

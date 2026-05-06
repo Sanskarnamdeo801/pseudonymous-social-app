@@ -1,7 +1,6 @@
 import { createContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 
-import { authService } from "../services/auth";
-import { tokenStorage } from "../utils/tokenStorage";
+import { DEMO_USER, JWT_AUTH_DISABLED } from "../lib/guestMode";
 import type { AuthUser } from "../types";
 
 interface AuthContextValue {
@@ -16,25 +15,18 @@ interface AuthContextValue {
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: PropsWithChildren) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(JWT_AUTH_DISABLED ? DEMO_USER : null);
+  const [loading, setLoading] = useState(!JWT_AUTH_DISABLED);
 
   const refreshUser = async () => {
-    const accessToken = tokenStorage.getAccessToken();
-    if (!accessToken) {
-      setUser(null);
+    if (JWT_AUTH_DISABLED) {
+      setUser(DEMO_USER);
       setLoading(false);
       return;
     }
-    try {
-      const currentUser = await authService.getCurrentUser();
-      setUser(currentUser);
-    } catch {
-      tokenStorage.clear();
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
+
+    setUser(null);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -45,27 +37,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
     () => ({
       user,
       loading,
-      login: async (handle, password) => {
-        const data = await authService.login(handle, password);
-        tokenStorage.setTokens(data.tokens);
-        setUser(data.user);
+      login: async () => {
+        setUser(DEMO_USER);
       },
-      signup: async (email, handle, password) => {
-        const data = await authService.signup(email, handle, password);
-        tokenStorage.setTokens(data.tokens);
-        setUser(data.user);
+      signup: async () => {
+        setUser(DEMO_USER);
       },
       logout: async () => {
-        const refreshToken = tokenStorage.getRefreshToken();
-        if (refreshToken) {
-          try {
-            await authService.logout(refreshToken);
-          } catch {
-            // Local logout still proceeds if the session is already invalid.
-          }
-        }
-        tokenStorage.clear();
-        setUser(null);
+        setUser(JWT_AUTH_DISABLED ? DEMO_USER : null);
       },
       refreshUser,
     }),
@@ -74,4 +53,3 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-

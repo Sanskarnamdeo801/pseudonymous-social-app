@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createHashRouter, Navigate } from "react-router-dom";
 
 import { AdminRoute, ProtectedRoute } from "../components/ProtectedRoute";
 import { AppShell } from "../layouts/AppShell";
@@ -19,7 +19,7 @@ import { SignupPage } from "../pages/SignupPage";
 import { TermsOfServicePage } from "../pages/TermsOfServicePage";
 import { UserProfilePage } from "../pages/UserProfilePage";
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   { path: "/privacy-policy", element: <PrivacyPolicyPage /> },
   { path: "/terms-of-service", element: <TermsOfServicePage /> },
   {
@@ -61,4 +61,5 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  { path: "*", element: <Navigate to="/" replace /> },
 ]);
