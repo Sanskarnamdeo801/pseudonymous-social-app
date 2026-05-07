@@ -24,5 +24,7 @@ export const postService = {
   deletePost: async (postId: string) => {
     await api.delete(`/posts/${postId}`);
   },
+  deleteComment: async (postId: string, commentId: string) => {
+    await api.delete(`/posts/${postId}/comments/${commentId}`);
+  },
 };
-

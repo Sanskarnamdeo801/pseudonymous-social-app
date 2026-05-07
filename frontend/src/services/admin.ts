@@ -1,5 +1,5 @@
 import api from "./api";
-import type { AdminDashboard, Report } from "../types";
+import type { AdminDashboard, AdminReport, Report } from "../types";
 
 export const adminService = {
   getDashboard: async () => {
@@ -7,7 +7,7 @@ export const adminService = {
     return data;
   },
   getReports: async () => {
-    const { data } = await api.get<Report[]>("/admin/reports");
+    const { data } = await api.get<AdminReport[]>("/admin/reports");
     return data;
   },
   resolveReport: async (reportId: string, status: Report["status"], resolutionNote: string) => {
@@ -23,5 +23,10 @@ export const adminService = {
   unbanUser: async (userId: string) => {
     await api.post(`/admin/users/${userId}/unban`);
   },
+  deletePost: async (postId: string) => {
+    await api.delete(`/admin/posts/${postId}`);
+  },
+  deleteComment: async (commentId: string) => {
+    await api.delete(`/admin/comments/${commentId}`);
+  },
 };
-

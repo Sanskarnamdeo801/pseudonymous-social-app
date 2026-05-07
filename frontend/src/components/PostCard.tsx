@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { fadeUpItem } from "../lib/motion";
+import { notifySuccess } from "../lib/notifications";
 import { postService } from "../services/posts";
 import { reportService } from "../services/reports";
 import type { Post } from "../types";
@@ -39,6 +40,7 @@ export function PostCard({ post, onPostUpdated, revealIndex = 0 }: PostCardProps
         reason: draftReason,
         details: draftDetails,
       });
+      notifySuccess("Post reported to the moderation queue.");
       setReportOpen(false);
       setDraftDetails("");
     } finally {

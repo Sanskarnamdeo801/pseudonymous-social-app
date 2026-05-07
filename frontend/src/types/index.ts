@@ -99,6 +99,18 @@ export interface Report {
   resolved_at: string | null;
 }
 
+export interface AdminReport extends Report {
+  reporter_handle: string;
+  target_handle: string | null;
+  target_title: string;
+  target_preview: string;
+  target_post_id: string | null;
+  target_user_id: string | null;
+  target_exists: boolean;
+  target_deleted: boolean;
+  target_user_banned: boolean | null;
+}
+
 export interface AdminDashboard {
   users: number;
   posts: number;
