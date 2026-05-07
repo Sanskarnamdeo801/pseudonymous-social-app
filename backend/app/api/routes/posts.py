@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from uuid import UUID
 
 import bleach
@@ -77,7 +76,7 @@ def get_post(post_id: UUID, current_user: User = Depends(get_current_user), db: 
     liked = db.scalar(select(Like).where(Like.post_id == post_id, Like.user_id == current_user.id)) is not None
     response = PostDetailResponse.model_validate(post)
     response.liked_by_viewer = liked
-    sorted_comments = sorted(post.comments, key=lambda item: item.created_at)
+    sorted_comments = sorted((comment for comment in post.comments if comment.deleted_at is None), key=lambda item: item.created_at)
     response.comments = _build_comment_tree(sorted_comments)
     return response
 
@@ -89,7 +88,7 @@ def delete_post(post_id: UUID, current_user: User = Depends(get_current_user), d
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     if post.author_id != current_user.id and not current_user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed")
-    post.deleted_at = datetime.now(UTC)
+    moderation_service.delete_post(db, post_id)
     db.commit()
     return {"message": "Post deleted"}
 
@@ -166,3 +165,18 @@ def create_comment(
     db.commit()
     db.refresh(comment)
     return CommentResponse.model_validate(comment)
+
+
+@router.delete(
+    "/{post_id}/comments/{comment_id}",
+    dependencies=[rate_limit(settings.rate_limit_write_requests, settings.rate_limit_window_seconds)],
+)
+def delete_comment(post_id: UUID, comment_id: UUID, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    comment = db.get(Comment, comment_id)
+    if not comment or comment.deleted_at or comment.post_id != post_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
+    if comment.author_id != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed")
+    moderation_service.delete_comment(db, comment_id)
+    db.commit()
+    return {"message": "Comment deleted"}

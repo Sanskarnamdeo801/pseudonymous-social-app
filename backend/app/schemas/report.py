@@ -32,3 +32,15 @@ class ReportResponse(BaseModel):
     resolved_at: datetime | None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AdminReportResponse(ReportResponse):
+    reporter_handle: str
+    target_handle: str | None = None
+    target_title: str = ""
+    target_preview: str = ""
+    target_post_id: UUID | None = None
+    target_user_id: UUID | None = None
+    target_exists: bool
+    target_deleted: bool
+    target_user_banned: bool | None = None

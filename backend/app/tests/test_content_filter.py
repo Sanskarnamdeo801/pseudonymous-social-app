@@ -4,7 +4,7 @@ from app.core.content_filter import ensure_content_allowed
 
 
 def test_content_filter_blocks_variations() -> None:
-    for value in ("fuck", "f*ck", "fucck", "Fuk", "kill yourself", "biiiiitch"):
+    for value in ("fuck", "f*ck", "fucck", "Fuk", "kill yourself", "biiiiitch", "asshole", "ass-hole"):
         try:
             ensure_content_allowed(value)
         except HTTPException as exc:

@@ -13,6 +13,7 @@ def _compile_word_pattern(pattern: str) -> re.Pattern[str]:
 
 BLOCKED_PATTERNS = (
     _compile_word_pattern(r"f+[\W_]*(?:u+|\*+)[\W_]*c*[\W_]*k+"),
+    _compile_word_pattern(r"a+[\W_]*s+[\W_]*s+[\W_]*h+[\W_]*o+[\W_]*l+[\W_]*e+"),
     _compile_word_pattern(r"b+[\W_]*i+[\W_]*t+[\W_]*c+[\W_]*h+"),
     _compile_word_pattern(r"b+[\W_]*a+[\W_]*s+[\W_]*t+[\W_]*a+[\W_]*r+[\W_]*d+"),
     _compile_word_pattern(r"r+[\W_]*a+[\W_]*p+[\W_]*e+"),

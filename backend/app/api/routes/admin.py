@@ -8,10 +8,11 @@ from sqlalchemy.orm import Session
 
 from app.core.security import require_admin
 from app.db.session import get_db
+from app.models.comment import Comment
 from app.models.post import Post
 from app.models.report import Report, ReportStatus
 from app.models.user import User
-from app.schemas.report import ReportResolve, ReportResponse
+from app.schemas.report import AdminReportResponse, ReportResolve, ReportResponse
 from app.services.moderation_service import moderation_service
 
 router = APIRouter()
@@ -27,10 +28,10 @@ def dashboard(_: User = Depends(require_admin), db: Session = Depends(get_db)) -
     }
 
 
-@router.get("/reports", response_model=list[ReportResponse])
-def list_reports(_: User = Depends(require_admin), db: Session = Depends(get_db)) -> list[ReportResponse]:
+@router.get("/reports", response_model=list[AdminReportResponse])
+def list_reports(_: User = Depends(require_admin), db: Session = Depends(get_db)) -> list[AdminReportResponse]:
     reports = db.scalars(select(Report).order_by(Report.created_at.desc())).all()
-    return [ReportResponse.model_validate(report) for report in reports]
+    return [moderation_service.build_admin_report_response(db, report) for report in reports]
 
 
 @router.patch("/reports/{report_id}", response_model=ReportResponse)
@@ -65,3 +66,19 @@ def unban_user(user_id: UUID, _: User = Depends(require_admin), db: Session = De
     db.commit()
     return {"message": f"User @{user.handle} unbanned"}
 
+
+@router.delete("/posts/{post_id}")
+def delete_post(post_id: UUID, _: User = Depends(require_admin), db: Session = Depends(get_db)) -> dict:
+    post = moderation_service.delete_post(db, post_id)
+    db.commit()
+    return {"message": f"Post '{post.title}' deleted"}
+
+
+@router.delete("/comments/{comment_id}")
+def delete_comment(comment_id: UUID, _: User = Depends(require_admin), db: Session = Depends(get_db)) -> dict:
+    comment = db.get(Comment, comment_id)
+    if not comment or comment.deleted_at:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
+    moderation_service.delete_comment(db, comment_id)
+    db.commit()
+    return {"message": "Comment deleted"}
