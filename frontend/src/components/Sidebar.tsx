@@ -1,17 +1,20 @@
 import { motion } from "framer-motion";
-import { FileText, Info, Settings } from "lucide-react";
+import { FileText, Info, Settings, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 
 import { useAuth } from "../hooks/useAuth";
-const mobileLinks = [
+const baseLinks = [
   { to: "/settings/account", label: "Settings", icon: Settings },
   { to: "/privacy-policy", label: "Privacy", icon: FileText },
 ];
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [isDesktop, setIsDesktop] = useState(() => (typeof window !== "undefined" ? window.innerWidth >= 1024 : false));
+  const links = user?.is_admin
+    ? [...baseLinks, { to: "/admin/dashboard", label: "Admin", icon: Shield }]
+    : baseLinks;
 
   useEffect(() => {
     const query = window.matchMedia("(min-width: 1024px)");
@@ -39,7 +42,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
           </div>
         </Link>
         <nav className="space-y-3">
-        {mobileLinks.map(({ to, label, icon: Icon }) => (
+        {links.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
@@ -61,7 +64,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="eyebrow">APP INFORMATION</p>
-            <h2 className="mt-4 font-display text-2xl font-extrabold text-mist-50">VeilSpeak v1.0.4 🚀</h2>
+            <h2 className="mt-4 font-display text-2xl font-extrabold text-mist-50">VeilSpeak v2.0.0 🚀</h2>
           </div>
           <div className="rounded-2xl bg-ember-500/14 p-2 text-ember-400">
             <Info className="h-5 w-5" />

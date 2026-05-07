@@ -18,8 +18,8 @@ export function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      await login(handle, password);
-      navigate("/feed");
+      const user = await login(handle, password);
+      navigate(user.is_admin ? "/admin/dashboard" : "/feed");
     } catch {
       setError("Unable to sign in with that handle and password.");
     } finally {

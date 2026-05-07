@@ -1,10 +1,10 @@
-import { Bell, House, Search, SquarePen, UserRound } from "lucide-react";
+import { Bell, House, Search, Shield, SquarePen, UserRound } from "lucide-react";
 import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
 
 import { useAuth } from "../hooks/useAuth";
 
-const navItems = [
+const baseNavItems = [
   { to: "/feed", label: "Home", icon: House },
   { to: "/search", label: "Search", icon: Search },
   { to: "/create", label: "Add", icon: SquarePen, accent: true },
@@ -14,6 +14,9 @@ const navItems = [
 export function MobileBottomNav({ hidden = false }: { hidden?: boolean }) {
   const { user } = useAuth();
   const profilePath = user ? `/user/${user.handle}` : "/login";
+  const navItems = user?.is_admin
+    ? [{ to: "/admin/dashboard", label: "Admin", icon: Shield }, ...baseNavItems]
+    : baseNavItems;
 
   return (
     <nav

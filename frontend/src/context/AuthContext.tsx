@@ -8,7 +8,7 @@ import { tokenStorage } from "../utils/tokenStorage";
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
-  login: (handle: string, password: string) => Promise<void>;
+  login: (handle: string, password: string) => Promise<AuthUser>;
   signup: (email: string, handle: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -51,6 +51,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         tokenStorage.setTokens(data.tokens);
         setUser(data.user);
         notifySuccess("Signed in successfully.");
+        return data.user;
       },
       signup: async (email, handle, password) => {
         const data = await authService.signup(email, handle, password);

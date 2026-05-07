@@ -1,4 +1,4 @@
-import { Bell, LogOut, Menu, MoonStar, Search, SunMedium } from "lucide-react";
+import { Bell, LogOut, Menu, MoonStar, Search, Shield, SunMedium } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
@@ -47,6 +47,14 @@ export function Navbar({ onMenuToggle, hidden = false }: NavbarProps) {
         </Link>
         </motion.div>
         <nav className="hidden items-center gap-3 md:flex">
+          {user?.is_admin && (
+            <motion.div variants={fadeUpItem}>
+            <Link to="/admin/dashboard" className="secondary-button animated-button px-4 py-2">
+              <Shield className="mr-2 inline h-4 w-4" />
+              Admin
+            </Link>
+            </motion.div>
+          )}
           <motion.div variants={fadeUpItem}>
           <Link to="/search" className="secondary-button animated-button px-4 py-2">
             <Search className="mr-2 inline h-4 w-4" />
