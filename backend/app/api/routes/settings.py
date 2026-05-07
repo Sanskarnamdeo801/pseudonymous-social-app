@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.content_filter import ensure_content_allowed
 from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models.user import User
@@ -22,11 +23,13 @@ def update_account_settings(
     db: Session = Depends(get_db),
 ) -> AccountSettingsResponse:
     if payload.handle and payload.handle.lower() != current_user.handle:
+        ensure_content_allowed(payload.handle)
         existing = db.scalar(select(User).where(User.handle == payload.handle.lower()))
         if existing:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Handle already taken")
         current_user.handle = payload.handle.lower()
     if payload.bio is not None:
+        ensure_content_allowed(payload.bio)
         current_user.bio = payload.bio
     db.commit()
     db.refresh(current_user)

@@ -4,11 +4,14 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
+PASSWORD_MIN_LENGTH = 6
+PASSWORD_MAX_LENGTH = 128
+
 
 class SignUpRequest(BaseModel):
     email: EmailStr
     handle: str = Field(min_length=3, max_length=32, pattern=r"^[a-zA-Z0-9_]+$")
-    password: str = Field(min_length=10, max_length=128)
+    password: str = Field(min_length=PASSWORD_MIN_LENGTH, max_length=PASSWORD_MAX_LENGTH)
 
     @field_validator("handle")
     @classmethod
@@ -18,7 +21,7 @@ class SignUpRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     handle: str = Field(min_length=3, max_length=32)
-    password: str = Field(min_length=10, max_length=128)
+    password: str = Field(min_length=PASSWORD_MIN_LENGTH, max_length=PASSWORD_MAX_LENGTH)
 
     @field_validator("handle")
     @classmethod

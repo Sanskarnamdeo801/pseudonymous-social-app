@@ -22,7 +22,7 @@ export function SignupPage() {
       await signup(email, handle, password);
       navigate("/feed");
     } catch {
-      setError("Signup failed. Check handle uniqueness and password length.");
+      setError("Signup failed. Check handle uniqueness and password requirements.");
     } finally {
       setLoading(false);
     }
@@ -60,10 +60,10 @@ export function SignupPage() {
           <input
             required
             type="password"
-            minLength={10}
+            minLength={6}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="At least 10 characters"
+            placeholder="At least 6 characters"
             className="field-shell"
           />
         </label>

@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
+from app.core.content_filter import ensure_content_allowed
 from app.core.config import get_settings
 from app.core.rate_limit import rate_limit
 from app.core.security import get_current_user
@@ -48,10 +49,13 @@ def _build_comment_tree(comments: list[Comment]) -> list[CommentResponse]:
 
 @router.post("", response_model=PostResponse, dependencies=[rate_limit(settings.rate_limit_write_requests, settings.rate_limit_window_seconds)])
 def create_post(payload: PostCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> PostResponse:
+    title = _sanitize(payload.title)
+    content = _sanitize(payload.content)
+    ensure_content_allowed(title, content)
     post = Post(
         author_id=current_user.id,
-        title=_sanitize(payload.title),
-        content=_sanitize(payload.content),
+        title=title,
+        content=content,
         auto_flagged=moderation_service.should_auto_flag(payload.title + " " + payload.content),
     )
     db.add(post)
@@ -129,6 +133,8 @@ def create_comment(
     post = db.get(Post, post_id)
     if not post or post.deleted_at:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    content = _sanitize(payload.content)
+    ensure_content_allowed(content)
     depth = 0
     parent_id = UUID(payload.parent_id) if payload.parent_id else None
     if parent_id:
@@ -140,7 +146,7 @@ def create_comment(
         post_id=post_id,
         author_id=current_user.id,
         parent_id=parent_id,
-        content=_sanitize(payload.content),
+        content=content,
         depth=depth,
         auto_flagged=moderation_service.should_auto_flag(payload.content),
     )

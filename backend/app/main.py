@@ -16,7 +16,8 @@ from app.middleware.security_headers import SecurityHeadersMiddleware
 
 # ✅ ADD THESE IMPORTS
 from app.db.base import Base
-from app.db.session import engine
+from app.db.session import SessionLocal, engine
+from app.services.auth_service import auth_service
 
 
 settings = get_settings()
@@ -38,6 +39,16 @@ async def lifespan(_: FastAPI):
         logger.info("Database tables ready ✅")
     except Exception as e:
         logger.error("DB init failed ❌", exc_info=e)
+
+    db = SessionLocal()
+    try:
+        auth_service.ensure_default_admin(db)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error("Default admin bootstrap failed", exc_info=e)
+    finally:
+        db.close()
 
     logger.info("Python runtime: %s", platform.python_version())
     logger.info("DATABASE_URL: %s", settings.safe_database_url)

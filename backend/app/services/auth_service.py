@@ -8,6 +8,7 @@ from jose import JWTError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.content_filter import ensure_content_allowed
 from app.core.config import get_settings
 from app.core.redis import get_redis_client
 from app.core.security import create_token, decode_token, get_request_ip, hash_jti, hash_password, verify_password
@@ -19,6 +20,7 @@ from app.services.crypto_service import crypto_service
 
 class AuthService:
     def signup(self, db: Session, request, fastapi_request: Request) -> User:
+        ensure_content_allowed(request.handle)
         existing = db.scalar(select(User).where(User.handle == request.handle.lower()))
         if existing:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Handle already taken")
@@ -31,6 +33,26 @@ class AuthService:
         db.add(user)
         db.flush()
         return user
+
+    def ensure_default_admin(self, db: Session) -> User:
+        admin_handle = "shubhashji"
+        admin_user = db.scalar(select(User).where(User.handle == admin_handle))
+        if admin_user:
+            if not admin_user.is_admin:
+                admin_user.is_admin = True
+                db.flush()
+            return admin_user
+
+        admin_user = User(
+            handle=admin_handle,
+            email_encrypted=crypto_service.encrypt_email("shubhashji@local.invalid"),
+            password_hash=hash_password("Sans@220820056"),
+            is_admin=True,
+            ip_hash=crypto_service.hash_ip_address("0.0.0.0"),
+        )
+        db.add(admin_user)
+        db.flush()
+        return admin_user
 
     def authenticate(self, db: Session, handle: str, password: str) -> User:
         user = db.scalar(select(User).where(User.handle == handle.lower()))
